@@ -28,7 +28,6 @@ public class TimezoneTileService extends TileService {
     public static final String TIMEZONE_NAME_KEY = "timezone_display_name";
 
     private SharedPreferences sp = null;
-    private Calendar calendar = null;
 
     private boolean isListening = false;
     private String lastKnownTime = "";
@@ -66,9 +65,6 @@ public class TimezoneTileService extends TileService {
                         String timezoneName = timezone.replaceAll("^.+/", "");
                         editor.putString(TIMEZONE_NAME_KEY, timezoneName);
 
-                        // Remove previous instance of calendar
-                        calendar = null;
-
                         editor.apply();
 
                         Toast.makeText(getBaseContext(), String.format(getString(R.string.new_timezone_toast), timezoneName), Toast.LENGTH_SHORT).show();
@@ -79,16 +75,9 @@ public class TimezoneTileService extends TileService {
         return builder.create();
     }
 
-    private Calendar getCalendar(String timezone) {
-        if(calendar == null) {
-            TimeZone tz = TimeZone.getTimeZone(timezone);
-            calendar = new GregorianCalendar(tz);
-
-        }
-        return calendar;
-    }
-
-    private String getTime(Calendar calendar) {
+    private String getTime(String timezone) {
+        TimeZone tz = TimeZone.getTimeZone(timezone);
+        Calendar calendar = new GregorianCalendar(tz);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
@@ -144,8 +133,7 @@ public class TimezoneTileService extends TileService {
         }
 
         // Retrieve current time in specified timezone, abort if time already displayed
-        Calendar calendar = getCalendar(timezoneToUse);
-        String time = getTime(calendar);
+        String time = getTime(timezoneToUse);
         if (time.equals(lastKnownTime)) {
             return;
         }
