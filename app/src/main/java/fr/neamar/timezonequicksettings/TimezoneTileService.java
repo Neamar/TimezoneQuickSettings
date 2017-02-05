@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Icon;
+import android.os.Handler;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
@@ -27,8 +28,10 @@ public class TimezoneTileService extends TileService {
     public static final String TIMEZONE_NAME_KEY = "timezone_display_name";
 
     private SharedPreferences sp = null;
+    private Calendar calendar = null;
 
     private boolean isListening = false;
+    private String lastKnownTime = "";
 
 
     private SharedPreferences getSharedPreferences() {
@@ -63,6 +66,9 @@ public class TimezoneTileService extends TileService {
                         String timezoneName = timezone.replaceAll("^.+/", "");
                         editor.putString(TIMEZONE_NAME_KEY, timezoneName);
 
+                        // Remove previous instance of calendar
+                        calendar = null;
+
                         editor.apply();
 
                         Toast.makeText(getBaseContext(), String.format(getString(R.string.new_timezone_toast), timezoneName), Toast.LENGTH_SHORT).show();
@@ -73,17 +79,29 @@ public class TimezoneTileService extends TileService {
         return builder.create();
     }
 
-    private String getTime(String timezone) {
-        TimeZone tz = TimeZone.getTimeZone(timezone);
-        Calendar calendar = new GregorianCalendar(tz);
+    private Calendar getCalendar(String timezone) {
+        if(calendar == null) {
+            TimeZone tz = TimeZone.getTimeZone(timezone);
+            calendar = new GregorianCalendar(tz);
+
+        }
+        return calendar;
+    }
+
+    private String getTime(Calendar calendar) {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
-        return hour + ":" + (minute < 10 ? "0" + minute : minute);
+        return (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute);
     }
 
-    private Bitmap getBitmap(String timezone) {
-        String text = getTime(timezone);
+    /**
+     * Return a bitmap whose content is the text passed as a parameter, drawn in the bitmap
+     *
+     * @param text probably the time to display
+     * @return bitmap to be used as an icon
+     */
+    private Bitmap getBitmap(String text) {
 
         Bitmap bitmap = Bitmap.createBitmap(200, 100, Bitmap.Config.ALPHA_8);
 
@@ -103,33 +121,70 @@ public class TimezoneTileService extends TileService {
         return bitmap;
     }
 
+    /**
+     * Update the tile,
+     * Display the time if a timezone has been set,
+     * Otherwise display a message asking the user to define timezone
+     */
     private void updateTile() {
         if (!isListening) {
             return;
         }
 
-        String timezoneToUse = getTimezone();
-
-
+        // Retrieve tile, abort if not tile currently displayed
         Tile tile = getQsTile();
         if (tile == null) {
             return;
         }
 
+        // Retrieve timezone, abort if no timezone set
+        String timezoneToUse = getTimezone();
         if (timezoneToUse.isEmpty()) {
-            Log.i(TAG, "Timezone not defined yet.");
-            tile.setLabel(getString(R.string.tile_label_unitialized));
-        } else {
-            tile.setLabel(getTimezoneName());
-            tile.setIcon(Icon.createWithBitmap(getBitmap(timezoneToUse)));
+            return;
         }
 
+        // Retrieve current time in specified timezone, abort if time already displayed
+        Calendar calendar = getCalendar(timezoneToUse);
+        String time = getTime(calendar);
+        if (time.equals(lastKnownTime)) {
+            return;
+        }
+
+        // Otherwise, update tile!
+        tile.setLabel(getTimezoneName());
+        tile.setIcon(Icon.createWithBitmap(getBitmap(time)));
+        lastKnownTime = time;
+
+        // And send to screen
         try {
-            getQsTile().updateTile();
+            tile.updateTile();
         } catch (NullPointerException e) {
             // Drawing to a bitmap can take time, and when drag-dropping the quicksettings into the active part (on init) we might get a NullPointerException on clearPendingBing()
             e.printStackTrace();
         }
+
+    }
+
+    /**
+     * Update the tile, and schedule next update in a couple seconds
+     */
+    private void regularlyUpdateTile() {
+        // Do not register a new handler if we're not listening right now
+        if (!isListening) {
+            return;
+        }
+
+        // Update tile content
+        updateTile();
+
+        // Register a new update
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                regularlyUpdateTile();
+            }
+        }, 5000);
     }
 
     @Override
@@ -152,7 +207,16 @@ public class TimezoneTileService extends TileService {
         Log.i(TAG, "Start listening.");
         isListening = true;
 
-        updateTile();
+        // handle the empty use case
+        if (getTimezone().isEmpty()) {
+            Tile tile = getQsTile();
+            tile.setLabel(getString(R.string.tile_label_unitialized));
+            tile.setIcon(Icon.createWithResource(getBaseContext(), R.drawable.tile_icon_before_add));
+            tile.updateTile();
+        }
+
+        // Ensure we update the content regularly while we're listening
+        regularlyUpdateTile();
 
         super.onStartListening();
     }
