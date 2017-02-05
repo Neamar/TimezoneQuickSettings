@@ -28,6 +28,9 @@ public class TimezoneTileService extends TileService {
 
     private SharedPreferences sp = null;
 
+    private boolean isListening = false;
+
+
     private SharedPreferences getSharedPreferences() {
         if (sp == null) {
             sp = getBaseContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -71,7 +74,6 @@ public class TimezoneTileService extends TileService {
     }
 
     private String getTime(String timezone) {
-        Log.e("WTF", timezone);
         TimeZone tz = TimeZone.getTimeZone(timezone);
         Calendar calendar = new GregorianCalendar(tz);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -102,9 +104,17 @@ public class TimezoneTileService extends TileService {
     }
 
     private void updateTile() {
+        if (!isListening) {
+            return;
+        }
+
         String timezoneToUse = getTimezone();
 
+
         Tile tile = getQsTile();
+        if (tile == null) {
+            return;
+        }
 
         if (timezoneToUse.isEmpty()) {
             Log.i(TAG, "Timezone not defined yet.");
@@ -114,7 +124,12 @@ public class TimezoneTileService extends TileService {
             tile.setIcon(Icon.createWithBitmap(getBitmap(timezoneToUse)));
         }
 
-        getQsTile().updateTile();
+        try {
+            getQsTile().updateTile();
+        } catch (NullPointerException e) {
+            // Drawing to a bitmap can take time, and when drag-dropping the quicksettings into the active part (on init) we might get a NullPointerException on clearPendingBing()
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -127,6 +142,7 @@ public class TimezoneTileService extends TileService {
     @Override
     public void onTileRemoved() {
         Log.i(TAG, "Tile removed.");
+        getSharedPreferences().edit().clear().apply();
 
         super.onTileRemoved();
     }
@@ -134,6 +150,7 @@ public class TimezoneTileService extends TileService {
     @Override
     public void onStartListening() {
         Log.i(TAG, "Start listening.");
+        isListening = true;
 
         updateTile();
 
@@ -143,6 +160,8 @@ public class TimezoneTileService extends TileService {
     @Override
     public void onStopListening() {
         Log.i(TAG, "Stop listening.");
+        isListening = false;
+
         super.onStopListening();
     }
 
