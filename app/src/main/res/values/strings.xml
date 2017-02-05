@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Timezone QuickSettings</string>
     <string name="tile_label_before_add">Time in the world</string>
-    <string name="tile_label_unitialized">Touch to set...</string>
+    <string name="tile_label_unitialized">Touch to set…</string>
     <string name="toast_touch_to_initialize">Added! Click on the quick setting to define timezone.</string>
+    <string name="pick_timezone">Pick timezone</string>
+    <string name="new_timezone_toast">"New timezone: %s"</string>
 </resources>
