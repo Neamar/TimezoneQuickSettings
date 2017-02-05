@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Timezone QuickSettings</string>
+    <string name="tile_label_before_add">Time in the world</string>
 </resources>
