@@ -4,10 +4,20 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.drawable.Icon;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
 import android.widget.Toast;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class TimezoneTileService extends TileService {
     public static final String TAG = "TimezoneTileService";
@@ -17,8 +27,9 @@ public class TimezoneTileService extends TileService {
     public static final String TIMEZONE_NAME_KEY = "timezone";
 
     private SharedPreferences sp = null;
+
     private SharedPreferences getSharedPreferences() {
-        if(sp == null) {
+        if (sp == null) {
             sp = getBaseContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         }
 
@@ -42,7 +53,7 @@ public class TimezoneTileService extends TileService {
                         // of the selected item
                         String[] timezones = getResources().getStringArray(R.array.timezone_names);
                         String timezone = timezones[which];
-                        Log.i(TAG, "Setting timezone to "  + timezone);
+                        Log.i(TAG, "Setting timezone to " + timezone);
 
                         SharedPreferences.Editor editor = getSharedPreferences().edit();
                         editor.putString(TIMEZONE_KEY, timezone);
@@ -59,18 +70,49 @@ public class TimezoneTileService extends TileService {
         return builder.create();
     }
 
+    private String getTime(String timezone) {
+        TimeZone tz = TimeZone.getTimeZone(timezone);
+        Calendar calendar = new GregorianCalendar(tz);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        return hour + ":" + (minute < 10 ? "0" + minute : minute);
+    }
+
+    private Bitmap getBitmap(String timezone) {
+        String text = getTime(timezone);
+
+        Bitmap bitmap = Bitmap.createBitmap(200, 100, Bitmap.Config.ALPHA_8);
+
+        Canvas canvas = new Canvas(bitmap);
+        // new antialised Paint
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(Color.rgb(0, 0, 0));
+        paint.setTextSize(70);
+
+        // draw text to the Canvas center
+        Rect bounds = new Rect();
+        paint.getTextBounds(text, 0, text.length(), bounds);
+        int x = (bitmap.getWidth() - bounds.width()) / 2;
+        int y = (bitmap.getHeight() + bounds.height()) / 2;
+
+        canvas.drawText(text, x, y, paint);
+
+        return bitmap;
+    }
+
     private void updateTile() {
         Log.e("WTF", "Updated tile.");
         String timezoneToUse = getTimezone();
 
         Tile tile = getQsTile();
 
-        if(timezoneToUse.isEmpty()) {
+        if (timezoneToUse.isEmpty()) {
             Log.i(TAG, "Timezone not defined yet.");
             tile.setLabel(getString(R.string.tile_label_unitialized));
-        }
-        else {
+        } else {
             tile.setLabel(getTimezoneName());
+            tile.setIcon(Icon.createWithBitmap(getBitmap(timezoneToUse)));
         }
 
         getQsTile().updateTile();
