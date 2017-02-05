@@ -24,7 +24,7 @@ public class TimezoneTileService extends TileService {
 
     public static final String PREFS_NAME = "timezone_tile_service";
     public static final String TIMEZONE_KEY = "timezone";
-    public static final String TIMEZONE_NAME_KEY = "timezone";
+    public static final String TIMEZONE_NAME_KEY = "timezone_display_name";
 
     private SharedPreferences sp = null;
 
@@ -71,6 +71,7 @@ public class TimezoneTileService extends TileService {
     }
 
     private String getTime(String timezone) {
+        Log.e("WTF", timezone);
         TimeZone tz = TimeZone.getTimeZone(timezone);
         Calendar calendar = new GregorianCalendar(tz);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -85,7 +86,6 @@ public class TimezoneTileService extends TileService {
         Bitmap bitmap = Bitmap.createBitmap(200, 100, Bitmap.Config.ALPHA_8);
 
         Canvas canvas = new Canvas(bitmap);
-        // new antialised Paint
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(Color.rgb(0, 0, 0));
         paint.setTextSize(70);
@@ -102,7 +102,6 @@ public class TimezoneTileService extends TileService {
     }
 
     private void updateTile() {
-        Log.e("WTF", "Updated tile.");
         String timezoneToUse = getTimezone();
 
         Tile tile = getQsTile();
