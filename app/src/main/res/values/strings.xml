@@ -5,14 +5,15 @@
     <string name="toast_touch_to_initialize">Added! Click on the quick setting to define timezone.</string>
     <string name="pick_timezone">Pick timezone</string>
     <string name="new_timezone_toast">"New timezone: %s"</string>
-    <string name="tutorial">
-\t• Display the notification drawer\n
-\t• Touch the small "⌄" on the top-right corner\n
-\t• Touch the pen button on the top row\n
-\t• Select "Time in the world" and dra and drop it into the first section\n
-\t• Press back\n
-\t• Touch the clock icon\n
-\t• Pick timezone :)\n
-    </string>
+    <string name="tutorial1">\t• Display the notification drawer</string>
+    <string name="tutorial2">\t• Touch the small \"⌄\" on the top-right corner</string>
+    <string name="tutorial3">\t• Tap the pencil at the top of the screen</string>
+    <string name="tutorial4">\t• Select \"Time in the world\" and drag it into the first section</string>
+    <string name="tutorial5">\t• Press back</string>
+    <string name="tutorial6">\t• Touch the clock icon</string>
+    <string name="tutorial7">\t• Pick timezone</string>
+    <string name="tutorial8">\t• You\'re done :)</string>
+
+    <string name="how_to_use">How to use?</string>
 
 </resources>
