@@ -31,22 +31,22 @@ public class TimezoneTileService extends TileService {
 
     private boolean isListening = false;
     private String lastKnownTime = "";
+    private Handler handler;
 
+    @Override
+    public void onCreate() {
+        handler = new Handler();
+        sp = getBaseContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-    private SharedPreferences getSharedPreferences() {
-        if (sp == null) {
-            sp = getBaseContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        }
-
-        return sp;
+        super.onCreate();
     }
 
     private String getTimezone() {
-        return getSharedPreferences().getString(TIMEZONE_KEY, "");
+        return sp.getString(TIMEZONE_KEY, "");
     }
 
     private String getTimezoneName() {
-        return getSharedPreferences().getString(TIMEZONE_NAME_KEY, "");
+        return sp.getString(TIMEZONE_NAME_KEY, "");
     }
 
     private Dialog getTimezoneDialog() {
@@ -60,7 +60,7 @@ public class TimezoneTileService extends TileService {
                         String timezone = timezones[which];
                         Log.i(TAG, "Setting timezone to " + timezone);
 
-                        SharedPreferences.Editor editor = getSharedPreferences().edit();
+                        SharedPreferences.Editor editor = sp.edit();
                         editor.putString(TIMEZONE_KEY, timezone);
                         String timezoneName = timezone.replaceAll("^.+/", "");
                         editor.putString(TIMEZONE_NAME_KEY, timezoneName);
@@ -165,14 +165,15 @@ public class TimezoneTileService extends TileService {
         // Update tile content
         updateTile();
 
-        // Register a new update
-        final Handler handler = new Handler();
+        int currentSecond = Calendar.getInstance().get(Calendar.SECOND);
+        int timeToNextMinute = (60 - currentSecond) * 1000;
+
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 regularlyUpdateTile();
             }
-        }, 5000);
+        }, timeToNextMinute);
     }
 
     @Override
@@ -185,7 +186,7 @@ public class TimezoneTileService extends TileService {
     @Override
     public void onTileRemoved() {
         Log.i(TAG, "Tile removed.");
-        getSharedPreferences().edit().clear().apply();
+        sp.edit().clear().apply();
 
         super.onTileRemoved();
     }
@@ -213,6 +214,8 @@ public class TimezoneTileService extends TileService {
     public void onStopListening() {
         Log.i(TAG, "Stop listening.");
         isListening = false;
+        // Discard ongoing runnable
+        handler.removeCallbacksAndMessages(null);
 
         super.onStopListening();
     }
