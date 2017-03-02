@@ -62,7 +62,7 @@ public class TimezoneTileService extends TileService {
 
                         SharedPreferences.Editor editor = sp.edit();
                         editor.putString(TIMEZONE_KEY, timezone);
-                        String timezoneName = timezone.replaceAll("^.+/", "");
+                        String timezoneName = timezone.replaceAll("^.+/", "").replaceAll("_", " ");
                         editor.putString(TIMEZONE_NAME_KEY, timezoneName);
 
                         editor.apply();
