@@ -1,7 +1,6 @@
 package fr.neamar.timezonequicksettings;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -16,6 +15,7 @@ import android.service.quicksettings.TileService;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
@@ -49,30 +49,69 @@ public class TimezoneTileService extends TileService {
         return sp.getString(TIMEZONE_NAME_KEY, "");
     }
 
-    private Dialog getTimezoneDialog() {
+    public void displayDialog() {
+        displayDialog("");
+    }
+
+    public void displayDialog(final String filterPrefix) {
+        final String nestedIndicator = " / ...";
+        // Retrieve all items matching prefix
+        String[] allTimezones = getResources().getStringArray(R.array.timezone_names);
+        final ArrayList<String> currentTimezones = new ArrayList<>();
+
+        String currentPrefix = "";
+        for (String tz : allTimezones) {
+            if (tz.startsWith(filterPrefix)) {
+                if (tz.contains("/")) {
+                    String prefix = tz.substring(0, tz.indexOf("/"));
+                    if (prefix.equals(currentPrefix)) {
+                        // We've already added this prefix
+                        continue;
+                    }
+                    currentPrefix = prefix;
+                    currentTimezones.add(currentPrefix + nestedIndicator);
+                }
+                else {
+                    currentTimezones.add(tz);
+                }
+            }
+        }
+
+        Log.e("WTF", "Size: " + currentTimezones.size() + ", prefix: " + filterPrefix);
         AlertDialog.Builder builder = new AlertDialog.Builder(getBaseContext());
         builder.setTitle(R.string.pick_timezone)
-                .setItems(R.array.timezone_names, new DialogInterface.OnClickListener() {
+                .setItems(currentTimezones.toArray(new String[currentTimezones.size()]), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         // The 'which' argument contains the index position
                         // of the selected item
-                        String[] timezones = getResources().getStringArray(R.array.timezone_names);
-                        String timezone = timezones[which];
-                        Log.i(TAG, "Setting timezone to " + timezone);
+                        String timezone = currentTimezones.get(which);
 
-                        SharedPreferences.Editor editor = sp.edit();
-                        editor.putString(TIMEZONE_KEY, timezone);
-                        String timezoneName = timezone.replaceAll("^.+/", "").replaceAll("_", " ");
-                        editor.putString(TIMEZONE_NAME_KEY, timezoneName);
+                        if(timezone.contains(nestedIndicator)) {
+                            // Open subfolder
+                            displayDialog(filterPrefix + timezone.replace(nestedIndicator, "") + "/");
+                            return;
+                        }
 
-                        editor.apply();
-
-                        Toast.makeText(getBaseContext(), String.format(getString(R.string.new_timezone_toast), timezoneName), Toast.LENGTH_SHORT).show();
-
-                        updateTile();
+                        onTimezonePicked(timezone);
                     }
                 });
-        return builder.create();
+
+        showDialog(builder.create());
+    }
+
+    public void onTimezonePicked(String timezone) {
+        Log.i(TAG, "Setting timezone to " + timezone);
+
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(TIMEZONE_KEY, timezone);
+        String timezoneName = timezone.replaceAll("^.+/", "").replaceAll("_", " ");
+        editor.putString(TIMEZONE_NAME_KEY, timezoneName);
+
+        editor.apply();
+
+        Toast.makeText(getBaseContext(), String.format(getString(R.string.new_timezone_toast), timezoneName), Toast.LENGTH_SHORT).show();
+
+        updateTile();
     }
 
     private String getTime(String timezone) {
@@ -223,7 +262,7 @@ public class TimezoneTileService extends TileService {
     @Override
     public void onClick() {
         Log.i(TAG, "Tile clicked.");
-        showDialog(getTimezoneDialog());
+        displayDialog();
 
         super.onClick();
     }
