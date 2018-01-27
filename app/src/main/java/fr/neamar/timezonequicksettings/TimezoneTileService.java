@@ -2,7 +2,6 @@ package fr.neamar.timezonequicksettings;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -14,7 +13,8 @@ import android.os.Handler;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
-import android.widget.Toast;
+import android.view.LayoutInflater;
+import android.view.View;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -50,9 +50,13 @@ public class TimezoneTileService extends TileService {
     }
 
     private Dialog getTimezoneDialog() {
+        LayoutInflater layoutInflater = LayoutInflater.from(TimezoneTileService.this);
+        View promptView = layoutInflater.inflate(R.layout.timezone_picker_dialog, null);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getBaseContext());
-        builder.setTitle(R.string.pick_timezone)
-                .setItems(R.array.timezone_names, new DialogInterface.OnClickListener() {
+        builder.setView(promptView);
+        builder.setTitle(R.string.pick_timezone);
+                /*.setItems(R.array.timezone_names, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         // The 'which' argument contains the index position
                         // of the selected item
@@ -71,7 +75,7 @@ public class TimezoneTileService extends TileService {
 
                         updateTile();
                     }
-                });
+                });*/
         return builder.create();
     }
 
