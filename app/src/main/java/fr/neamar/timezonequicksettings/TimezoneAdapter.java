@@ -50,6 +50,7 @@ public class TimezoneAdapter extends ArrayAdapter<String> implements SectionInde
         for (String tz : allOptions) {
             if (tz.startsWith(filterPrefix)) {
                 tz = tz.replace(filterPrefix, "");
+                tz = tz.replaceAll("_" , " ");
                 if (tz.contains("/")) {
                     String prefix = tz.substring(0, tz.indexOf("/"));
                     if (prefix.equals(currentPrefix)) {
@@ -68,9 +69,9 @@ public class TimezoneAdapter extends ArrayAdapter<String> implements SectionInde
         this.addAll(currentOptions);
     }
 
-    public String getFullName(int position) {
+    String getFullName(int position) {
         this.notifyDataSetChanged();
-        return this.prefix + getItem(position);
+        return (this.prefix + getItem(position)).replaceAll(" ", "_");
     }
 
     @Override
