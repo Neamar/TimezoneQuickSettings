@@ -15,6 +15,9 @@ import android.service.quicksettings.TileService;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -56,27 +59,45 @@ public class TimezoneTileService extends TileService {
         AlertDialog.Builder builder = new AlertDialog.Builder(getBaseContext());
         builder.setView(promptView);
         builder.setTitle(R.string.pick_timezone);
-                /*.setItems(R.array.timezone_names, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // The 'which' argument contains the index position
-                        // of the selected item
-                        String[] timezones = getResources().getStringArray(R.array.timezone_names);
-                        String timezone = timezones[which];
-                        Log.i(TAG, "Setting timezone to " + timezone);
 
-                        SharedPreferences.Editor editor = sp.edit();
-                        editor.putString(TIMEZONE_KEY, timezone);
-                        String timezoneName = timezone.replaceAll("^.+/", "").replaceAll("_", " ");
-                        editor.putString(TIMEZONE_NAME_KEY, timezoneName);
+        final Dialog dialog = builder.create();
 
-                        editor.apply();
+        final TimezoneAdapter adapter = new TimezoneAdapter(this);
+        final ListView listView = promptView.findViewById(R.id.timezoneList);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String selection = adapter.getItem(position);
+                if(selection.contains(TimezoneAdapter.NESTED_INDICATOR)) {
+                    // This is a "subfolder"
+                    // Open sublist
+                    dialog.setTitle(selection);
+                    adapter.applyPrefix(selection.replace(TimezoneAdapter.NESTED_INDICATOR, "/"));
+                }
+                else {
+                    selectTimezone(selection);
+                    dialog.dismiss();
+                }
+            }
+        });
 
-                        Toast.makeText(getBaseContext(), String.format(getString(R.string.new_timezone_toast), timezoneName), Toast.LENGTH_SHORT).show();
+        return dialog;
+    }
 
-                        updateTile();
-                    }
-                });*/
-        return builder.create();
+    private void selectTimezone(String timezone) {
+        Log.i(TAG, "Setting timezone to " + timezone);
+
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(TIMEZONE_KEY, timezone);
+        String timezoneName = timezone.replaceAll("^.+/", "").replaceAll("_", " ");
+        editor.putString(TIMEZONE_NAME_KEY, timezoneName);
+
+        editor.apply();
+
+        Toast.makeText(getBaseContext(), String.format(getString(R.string.new_timezone_toast), timezoneName), Toast.LENGTH_SHORT).show();
+
+        updateTile();
     }
 
     private String getTime(String timezone) {
