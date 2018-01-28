@@ -73,10 +73,10 @@ public class TimezoneTileService extends TileService {
                     // This is a "subfolder"
                     // Open sublist
                     dialog.setTitle(selection);
-                    adapter.applyPrefix(selection.replace(TimezoneAdapter.NESTED_INDICATOR, "/"));
+                    adapter.applyPrefix(adapter.prefix + selection.replace(TimezoneAdapter.NESTED_INDICATOR, "/"));
                 }
                 else {
-                    selectTimezone(selection);
+                    selectTimezone(adapter.getFullName(position));
                     dialog.dismiss();
                 }
             }

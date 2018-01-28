@@ -17,6 +17,8 @@ public class TimezoneAdapter extends ArrayAdapter<String> {
     final static String TAG = "TimezoneAdapter";
     final static String NESTED_INDICATOR = " / ...";
 
+    public String prefix;
+
     // all available timezones
     private final List<String> allOptions;
 
@@ -33,6 +35,8 @@ public class TimezoneAdapter extends ArrayAdapter<String> {
 
     void applyPrefix(String filterPrefix) {
         Log.i(TAG, "Filtering list on " + filterPrefix);
+        this.prefix = filterPrefix;
+
         currentOptions.clear();
 
         String currentPrefix = "";
@@ -47,8 +51,7 @@ public class TimezoneAdapter extends ArrayAdapter<String> {
                     }
                     currentPrefix = prefix;
                     currentOptions.add(currentPrefix + NESTED_INDICATOR);
-                }
-                else {
+                } else {
                     currentOptions.add(tz);
                 }
             }
@@ -56,5 +59,9 @@ public class TimezoneAdapter extends ArrayAdapter<String> {
 
         this.clear();
         this.addAll(currentOptions);
+    }
+
+    public String getFullName(int position) {
+        return this.prefix + getItem(position);
     }
 }
