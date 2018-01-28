@@ -365,8 +365,6 @@
         <item>Brazil/DeNoronha</item>
         <item>Brazil/East</item>
         <item>Brazil/West</item>
-        <item>CET</item>
-        <item>CST6CDT</item>
         <item>Canada/Atlantic</item>
         <item>Canada/Central</item>
         <item>Canada/East-Saskatchewan</item>
@@ -378,12 +376,6 @@
         <item>Canada/Yukon</item>
         <item>Chile/Continental</item>
         <item>Chile/EasterIsland</item>
-        <item>Cuba</item>
-        <item>EET</item>
-        <item>EST</item>
-        <item>EST5EDT</item>
-        <item>Egypt</item>
-        <item>Eire</item>
         <item>Etc/GMT</item>
         <item>Etc/GMT+0</item>
         <item>Etc/GMT+1</item>
@@ -478,16 +470,7 @@
         <item>Europe/Zagreb</item>
         <item>Europe/Zaporozhye</item>
         <item>Europe/Zurich</item>
-        <item>GB</item>
-        <item>GB-Eire</item>
-        <item>GMT</item>
-        <item>GMT+0</item>
-        <item>GMT-0</item>
-        <item>GMT0</item>
         <item>Greenwich</item>
-        <item>HST</item>
-        <item>Hongkong</item>
-        <item>Iceland</item>
         <item>Indian/Antananarivo</item>
         <item>Indian/Chagos</item>
         <item>Indian/Christmas</item>
@@ -559,30 +542,6 @@
         <item>Pacific/Wake</item>
         <item>Pacific/Wallis</item>
         <item>Pacific/Yap</item>
-        <item>Poland</item>
-        <item>Portugal</item>
-        <item>ROC</item>
-        <item>ROK</item>
-        <item>Singapore</item>
-        <item>Turkey</item>
-        <item>UCT</item>
-        <item>US/Alaska</item>
-        <item>US/Aleutian</item>
-        <item>US/Arizona</item>
-        <item>US/Central</item>
-        <item>US/East-Indiana</item>
-        <item>US/Eastern</item>
-        <item>US/Hawaii</item>
-        <item>US/Indiana-Starke</item>
-        <item>US/Michigan</item>
-        <item>US/Mountain</item>
-        <item>US/Pacific</item>
-        <item>US/Samoa</item>
-        <item>UTC</item>
-        <item>Universal</item>
-        <item>W-SU</item>
-        <item>WET</item>
-        <item>Zulu</item>
     </string-array>
 </resources>
 
