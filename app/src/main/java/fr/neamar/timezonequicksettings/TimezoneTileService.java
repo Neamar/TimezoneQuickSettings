@@ -116,12 +116,7 @@ public class TimezoneTileService extends TileService {
                 // It's never 0:00pm, it's 12:00pm
                 hour = 12;
             }
-            String base = hour + ":" + (minute < 10 ? "0" + minute : minute);
-            if (calendar.get(Calendar.AM_PM) == Calendar.AM) {
-                return base + "am";
-            } else {
-                return base + "pm";
-            }
+            return hour + ":" + (minute < 10 ? "0" + minute : minute);
         }
     }
 
@@ -139,12 +134,8 @@ public class TimezoneTileService extends TileService {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(Color.rgb(0, 0, 0));
 
-        if (use24HourFormat) {
-            paint.setTextSize(70);
-        } else {
-            // 12 hour format needs more space
-            paint.setTextSize(52);
-        }
+        paint.setTextSize(70);
+
         // draw text to the Canvas center
         Rect bounds = new Rect();
         paint.getTextBounds(text, 0, text.length(), bounds);
