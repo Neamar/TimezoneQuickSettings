@@ -12,6 +12,7 @@ import android.graphics.drawable.Icon;
 import android.os.Handler;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,12 +36,13 @@ public class TimezoneTileService extends TileService {
     private boolean isListening = false;
     private String lastKnownTime = "";
     private Handler handler;
+    private boolean use24HourFormat;
 
     @Override
     public void onCreate() {
         handler = new Handler();
         sp = getBaseContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-
+        use24HourFormat = DateFormat.is24HourFormat(this);
         super.onCreate();
     }
 
@@ -69,13 +71,13 @@ public class TimezoneTileService extends TileService {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String selection = adapter.getItem(position);
-                if(selection.contains(TimezoneAdapter.NESTED_INDICATOR)) {
+                assert selection != null;
+                if (selection.contains(TimezoneAdapter.NESTED_INDICATOR)) {
                     // This is a "subfolder"
                     // Open sublist
                     dialog.setTitle(selection);
                     adapter.applyPrefix(adapter.prefix + selection.replace(TimezoneAdapter.NESTED_INDICATOR, "/"));
-                }
-                else {
+                } else {
                     selectTimezone(adapter.getFullName(position));
                     dialog.dismiss();
                 }
@@ -103,10 +105,24 @@ public class TimezoneTileService extends TileService {
     private String getTime(String timezone) {
         TimeZone tz = TimeZone.getTimeZone(timezone);
         Calendar calendar = new GregorianCalendar(tz);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
-        return (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute);
+        if (use24HourFormat) {
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            return (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute);
+        } else {
+            int hour = calendar.get(Calendar.HOUR);
+            if (hour == 0) {
+                // It's never 0:00pm, it's 12:00pm
+                hour = 12;
+            }
+            String base = hour + ":" + (minute < 10 ? "0" + minute : minute);
+            if (calendar.get(Calendar.AM_PM) == Calendar.AM) {
+                return base + "am";
+            } else {
+                return base + "pm";
+            }
+        }
     }
 
     /**
@@ -122,8 +138,13 @@ public class TimezoneTileService extends TileService {
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(Color.rgb(0, 0, 0));
-        paint.setTextSize(70);
 
+        if (use24HourFormat) {
+            paint.setTextSize(70);
+        } else {
+            // 12 hour format needs more space
+            paint.setTextSize(52);
+        }
         // draw text to the Canvas center
         Rect bounds = new Rect();
         paint.getTextBounds(text, 0, text.length(), bounds);
